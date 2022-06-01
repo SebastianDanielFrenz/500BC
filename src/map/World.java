@@ -5,6 +5,7 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.IndexColorModel;
 import java.awt.image.LookupOp;
 import java.awt.image.LookupTable;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -42,6 +43,8 @@ public class World {
 
 	protected static Territory[] territories;
 	protected static List<Realm> realms;
+	
+	public static final boolean DUMP_NEIGHBOURS = true;
 
 	/*static {
 		int count = 2;
@@ -267,6 +270,22 @@ public class World {
 						t.addNeighbour(territories[colorToID.get(pixel2)]);
 					}
 				}
+			}
+		}
+		
+		if (DUMP_NEIGHBOURS) {
+			try {
+				FileWriter fw = new FileWriter("neighbours.csv");
+				for (Territory t2:territories) {
+					fw.write(String.valueOf(t2.ID));
+					for (Territory t3:t2.getNeighbours()) {
+						fw.write(","+t3.ID);
+					}
+					fw.write(";");
+				}
+				fw.close();
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 		}
 	}
