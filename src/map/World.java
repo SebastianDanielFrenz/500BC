@@ -38,11 +38,14 @@ public class World {
 	protected static int width, height;
 	protected static Set<Integer> uniqueColors;
 	protected static Map<Integer, Integer> colorToID;
-	protected static Map<Integer, LinkedList<int[]>> IDtoPixels;
+	protected static Map<Integer, LinkedList<int[]>> IDtoPixels; // pls remove
 	protected static int[][] pixelToID;
 
 	protected static Territory[] territories;
 	protected static List<Realm> realms;
+	
+	protected static Territory[] desert;
+	protected static Territory[] ocean;
 	
 	public static final boolean DUMP_NEIGHBOURS = true;
 
@@ -158,15 +161,15 @@ public class World {
 		}
 
 		pixelToID = new int[pixels.length][];
-		for (int j = 0; j < uniqueColors.size(); j++) {
-			IDtoPixels.put(j, new LinkedList<int[]>());
-		}
+		//for (int j = 0; j < uniqueColors.size(); j++) {
+		//	IDtoPixels.put(j, new LinkedList<int[]>());
+		//}
 
 		for (i = 0; i < pixels.length; i++) {
 			pixelToID[i] = new int[pixels[i].length];
 			for (int j = 0; j < pixels[i].length; j++) {
 				pixelToID[i][j] = colorToID.get(pixels[i][j]);
-				IDtoPixels.get(pixelToID[i][j]).add(new int[] { i, j });
+		//		IDtoPixels.get(pixelToID[i][j]).add(new int[] { i, j });
 			}
 		}
 	}
@@ -334,7 +337,7 @@ public class World {
 			}
 		}*/
 		
-		for (int[] pixel:IDtoPixels.get(t.ID)) {
+		for (int[] pixel:t.pixels) {
 			GamePanel.myPicture.setRGB(pixel[1], pixel[0], argb);
 		}
 	}
@@ -349,7 +352,7 @@ public class World {
 		//	 }
 		// }
 		
-		for (int[] pixel:IDtoPixels.get(t.ID)) {
+		for (int[] pixel:t.pixels) {
 			GamePanel.myPicture.setRGB(pixel[1], pixel[0], argb);
 			//System.out.println("pixel");
 		}
@@ -357,6 +360,11 @@ public class World {
 		 
 		//colorQueue1.add(t.fileColor);
 		//colorQueue2.add(argb);
+	}
+	
+	public static void loadTerritoryMeta() {
+		desert = new Territory[] {territories[1288]};
+		ocean = new Territory[] {};
 	}
 	
 	public static void updateWorld() {

@@ -140,6 +140,10 @@ public class GamePanel extends JFrame {
 				g.setColor(gui_text_title);
 				set(width / 10, height / 10);
 				center(g, display_state__realm.getName());
+				if (display_state__realm.getTerritories().size() == 1) {
+					if (display_state__realm.getTerritories().get(0).ID)
+					center(g, "Uninhabitable Desert");
+				}
 				setX(width / 80);
 				left(g, display_state__realm.getGovernment().getTypeName());
 				left(g, display_state__realm.getTerritories().size() + "/"
