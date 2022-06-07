@@ -5,6 +5,9 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.IndexColorModel;
 import java.awt.image.LookupOp;
 import java.awt.image.LookupTable;
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
@@ -15,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -25,6 +29,7 @@ import javax.imageio.ImageIO;
 import game.territory.CityStateGovernment;
 import game.territory.Government;
 import game.territory.Realm;
+import game.territory.terrain.Terrain;
 import util.CDate;
 
 public class World {
@@ -43,48 +48,37 @@ public class World {
 
 	protected static Territory[] territories;
 	protected static List<Realm> realms;
-	
+
 	protected static Territory[] desert;
 	protected static Territory[] ocean;
-	
+
 	public static final boolean DUMP_NEIGHBOURS = true;
+	public static final boolean VIEW_BIOME = true;
 
-	/*static {
-		int count = 2;
-		for (int c = 0; c < count; c++) {
-			new Thread(() -> {
-				while (true) {
-					if (!colorQueue1.isEmpty()) {
+	public static Set<Territory> DEBUG_LIST = new TreeSet<Territory>((x, y) -> x.ID == y.ID ? 0 : x.ID > y.ID ? 1 : -1);
 
-						int original = colorQueue1.poll();
-						int dst = colorQueue2.poll();
+	public static final Scanner scanner = new Scanner(System.in);
 
-						for (int x = 0; x < width; x++) {
-							for (int y = 0; y < height; y++) {
-								if (pixels[y][x] == original) {
-									GamePanel.myPicture.setRGB(x, y, dst);
-								}
-							}
-						}
-					} else {
-						try {
-							Thread.sleep(200);
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-					}
-				}
-			}).start();
-		}
-	}*/
+	/*
+	 * static { int count = 2; for (int c = 0; c < count; c++) { new Thread(() -> {
+	 * while (true) { if (!colorQueue1.isEmpty()) {
+	 * 
+	 * int original = colorQueue1.poll(); int dst = colorQueue2.poll();
+	 * 
+	 * for (int x = 0; x < width; x++) { for (int y = 0; y < height; y++) { if
+	 * (pixels[y][x] == original) { GamePanel.myPicture.setRGB(x, y, dst); } } } }
+	 * else { try { Thread.sleep(200); } catch (InterruptedException e) {
+	 * e.printStackTrace(); } } } }).start(); } }
+	 */
 
 	public World(String imageDst) throws IOException {
 		loadMap(getClass().getResource(imageDst));
-		
+
 		populateWorld();
+		loadTerritoryMeta();
 		determineNeighbours();
-		
-		new Thread(()->{
+
+		new Thread(() -> {
 			polishWorld(0);
 			Thread thread = new Thread(new ThreadedLoop());
 			thread.start();
@@ -161,15 +155,15 @@ public class World {
 		}
 
 		pixelToID = new int[pixels.length][];
-		//for (int j = 0; j < uniqueColors.size(); j++) {
-		//	IDtoPixels.put(j, new LinkedList<int[]>());
-		//}
+		for (int j = 0; j < uniqueColors.size(); j++) {
+			IDtoPixels.put(j, new LinkedList<int[]>());
+		}
 
 		for (i = 0; i < pixels.length; i++) {
 			pixelToID[i] = new int[pixels[i].length];
 			for (int j = 0; j < pixels[i].length; j++) {
 				pixelToID[i][j] = colorToID.get(pixels[i][j]);
-		//		IDtoPixels.get(pixelToID[i][j]).add(new int[] { i, j });
+				IDtoPixels.get(pixelToID[i][j]).add(new int[] { i, j });
 			}
 		}
 	}
@@ -201,6 +195,7 @@ public class World {
 		Iterator<Integer> uniqueColor = uniqueColors.iterator();
 		for (int i = 0; i < territories.length; i++) {
 			territories[i] = new Territory(i, uniqueColor.next());
+
 			Government government = new CityStateGovernment();
 			List<Territory> ts = new ArrayList<Territory>();
 			ts.add(territories[i]);
@@ -275,14 +270,14 @@ public class World {
 				}
 			}
 		}
-		
+
 		if (DUMP_NEIGHBOURS) {
 			try {
 				FileWriter fw = new FileWriter("neighbours.csv");
-				for (Territory t2:territories) {
+				for (Territory t2 : territories) {
 					fw.write(String.valueOf(t2.ID));
-					for (Territory t3:t2.getNeighbours()) {
-						fw.write(","+t3.ID);
+					for (Territory t3 : t2.getNeighbours()) {
+						fw.write("," + t3.ID);
 					}
 					fw.write(";");
 				}
@@ -309,12 +304,11 @@ public class World {
 		dst.addTerritory(t);
 		if (src.getTotalTerritoryCount() == 0) {
 			realms.remove(src);
-		}
-		else {
+		} else {
 			determineNeighbours(src);
 		}
 		determineNeighbours(dst);
-		
+
 		t.setRealm(dst);
 		setTerritoryColor(t, dst.getTerritories().size() > 0 ? dst.getTerritories().get(0).fileColor : 0xffffffff);
 	}
@@ -329,51 +323,142 @@ public class World {
 		argb += ((int) r & 0xff); // blue
 		argb += (((int) g & 0xff) << 8); // green
 		argb += (((int) b & 0xff) << 16); // red
-		/*for (int x = 0; x < width; x++) {
-			for (int y = 0; y < height; y++) {
-				if (pixels[y][x] == t.fileColor) {
-					GamePanel.myPicture.setRGB(x, y, argb);
-				}
-			}
-		}*/
-		
-		for (int[] pixel:t.pixels) {
+		/*
+		 * for (int x = 0; x < width; x++) { for (int y = 0; y < height; y++) { if
+		 * (pixels[y][x] == t.fileColor) { GamePanel.myPicture.setRGB(x, y, argb); } } }
+		 */
+
+		for (int[] pixel : IDtoPixels.get(t.ID)) {
 			GamePanel.myPicture.setRGB(pixel[1], pixel[0], argb);
 		}
 	}
 
 	public static void setTerritoryColor(Territory t, int argb) {
-		
-		 //for (int x = 0; x < width; x++) {
-		//	 for (int y = 0; y < height; y++) {
-		//		 if (pixels[y][x] == t.fileColor) { 
-		//			 GamePanel.myPicture.setRGB(x, y, argb);
-		//		}
-		//	 }
+
+		// for (int x = 0; x < width; x++) {
+		// for (int y = 0; y < height; y++) {
+		// if (pixels[y][x] == t.fileColor) {
+		// GamePanel.myPicture.setRGB(x, y, argb);
 		// }
-		
-		for (int[] pixel:t.pixels) {
+		// }
+		// }
+
+		for (int[] pixel : IDtoPixels.get(t.ID)) {
 			GamePanel.myPicture.setRGB(pixel[1], pixel[0], argb);
-			//System.out.println("pixel");
+			// System.out.println("pixel");
 		}
-		 
-		 
-		//colorQueue1.add(t.fileColor);
-		//colorQueue2.add(argb);
+
+		// colorQueue1.add(t.fileColor);
+		// colorQueue2.add(argb);
 	}
-	
+
+	public static int generateColorCode(int alpha, int r, int g, int b) {
+		int argb = 0;
+		argb += (((int) alpha & 0xff) << 24); // alpha
+		argb += ((int) r & 0xff); // blue
+		argb += (((int) g & 0xff) << 8); // green
+		argb += (((int) b & 0xff) << 16); // red
+		return argb;
+	}
+
 	public static void loadTerritoryMeta() {
-		desert = new Territory[] {territories[1288]};
+		desert = new Territory[] { territories[1288] };
 		ocean = new Territory[] {};
 	}
-	
+
+	public static boolean contains(Territory[] t, Territory s) {
+		if (t.length == 0) {
+			return false;
+		}
+		int upperLimit = desert.length - 1;
+		int lowerLimit = 0;
+		int center = desert.length / 2;
+		Territory c;
+		while (upperLimit != lowerLimit) {
+			c = desert[center];
+			if (c == s) {
+				return true;
+			}
+			if (c.ID > s.ID) {
+				upperLimit = center;
+			} else {
+				lowerLimit = center;
+			}
+			center = (upperLimit - lowerLimit) / 2 + lowerLimit;
+		}
+		return t[upperLimit] == s;
+	}
+
+	public static boolean isDesert(Territory t) {
+		return contains(desert, t);
+	}
+
+	public static boolean isOcean(Territory t) {
+		return contains(ocean, t);
+	}
+
 	public static void updateWorld() {
 		int len = date.getNumberOfDaysInMonth();
-		for (int i = date.getDay()-1;  i < territories.length; i+=len) {
-			 territories[i].update();
+		for (int i = date.getDay() - 1; i < territories.length; i += len) {
+			territories[i].update();
 		}
-		
+
 		date.addDay();
+	}
+
+	public static void dumpDebugList() {
+		try {
+			System.out.println("Biome: ");
+			String biome = scanner.nextLine();
+			FileWriter fw = new FileWriter("Z_out.txt", true);
+			for (Territory t : DEBUG_LIST) {
+				fw.write(t.ID + " = " + biome + "\n");
+			}
+			fw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void loadBiomes() {
+		for (int i = 0; i < Terrain.registry.size(); i++) {
+			Realm realm = new Realm(List.of(), List.of(), new CityStateGovernment());
+			realm.setName(Terrain.registry_names.get(i));
+			realm.setColor(Terrain.registry.get(i).color);
+		}
+
+		for (int i = 0; i < territories.length; i++) {
+			territories[i].setTerrain(Terrain.PLAINS);
+		}
+
+		try {
+			FileReader fr = new FileReader("biomes.txt");
+			BufferedReader br = new BufferedReader(fr);
+
+			String line;
+			while (true) {
+				line = br.readLine();
+				if (line == null || line.equals("")) {
+					break;
+				}
+				String[] s = line.split(" = ");
+				int ID = Integer.parseInt(s[0]);
+				String terrain_name = s[1];
+				territories[ID].setTerrain(Terrain.getTerrain(terrain_name));
+			}
+
+			br.close();
+			fr.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+	}
+
+	public static void debugBiomes() {
+		for 
 	}
 
 }

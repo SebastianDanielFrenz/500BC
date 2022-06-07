@@ -14,6 +14,7 @@ public class Realm {
 	private SubGovernmentContract contract;
 	private Government government;
 	private int color;
+	private String name;
 
 	public Realm(List<Realm> children, List<Territory> territories, Government government) {
 		this.children = children;
@@ -21,12 +22,12 @@ public class Realm {
 		this.government = government;
 		if (territories.size() > 0) {
 			color = territories.get(0).fileColor;
-		}
-		else {
+		} else {
 			World.random.nextInt();
 		}
+		name = String.valueOf(hashCode() % 10000);
 	}
-	
+
 	private double tax_income;
 	private double treasury;
 
@@ -71,7 +72,7 @@ public class Realm {
 	}
 
 	public String getName() {
-		return String.valueOf(hashCode() % 10000);
+		return name;
 	}
 
 	public void everyDirectTerritory(Consumer<Territory> con) {
@@ -98,21 +99,21 @@ public class Realm {
 	public void removeTerritory(Territory t) {
 		territories.remove(t);
 	}
-	
+
 	public double getTaxIncome() {
 		return tax_income;
 	}
-	
+
 	public double getTreasury() {
 		return treasury;
 	}
-	
+
 	public void update() {
 		tax_income = 0;
-		for (Territory t:territories) {
+		for (Territory t : territories) {
 			tax_income += t.getTaxIncome();
 		}
-		
+
 	}
 
 	@Override
@@ -133,5 +134,21 @@ public class Realm {
 
 	public void addTerritory(Territory t) {
 		territories.add(t);
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setColor(int r, int g, int b) {
+		color = World.generateColorCode(0xff, r, g, b);
+	}
+
+	public void setColor(int color) {
+		this.color = color;
+	}
+
+	public int getColor() {
+		return color;
 	}
 }

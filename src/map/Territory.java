@@ -8,6 +8,7 @@ import java.util.TreeSet;
 
 import game.territory.Realm;
 import game.territory.holding.Holding;
+import game.territory.terrain.Terrain;
 
 public class Territory {
 	public Territory(int ID, int fileColor) {
@@ -20,11 +21,12 @@ public class Territory {
 	private List<Territory> neighbours = new ArrayList<Territory>();
 	public final int fileColor;
 	private List<Holding> holdings = new ArrayList<Holding>();
-	
-	public LinkedList<int[]> pixels;
-	
+	private Terrain terrain;
+
+	public List<int[]> pixels;
+
 	private TerritoryStatistics statistics;
-	
+
 	private double tax_income;
 
 	public Realm getTopLevelRealm() {
@@ -48,7 +50,7 @@ public class Territory {
 	}
 
 	public void addNeighbour(Territory t) {
-		for (Territory t2:neighbours) {
+		for (Territory t2 : neighbours) {
 			if (t2 == t) {
 				return;
 			}
@@ -59,20 +61,20 @@ public class Territory {
 	public List<Territory> getNeighbours() {
 		return neighbours;
 	}
-	
+
 	public void update() {
 		tax_income = 0;
-		for (Holding holding:holdings) {
+		for (Holding holding : holdings) {
 			holding.update();
 			tax_income += holding.getTaxIncome();
 		}
 	}
-	
+
 	private void calcDevelopmentTarget() {
-		for (Holding holding:holdings) {
+		for (Holding holding : holdings) {
 		}
 	}
-	
+
 	public double getTaxIncome() {
 		return tax_income;
 	}
@@ -83,5 +85,13 @@ public class Territory {
 
 	public void setStatistics(TerritoryStatistics statistics) {
 		this.statistics = statistics;
+	}
+
+	public void setTerrain(Terrain terrain) {
+		this.terrain = terrain;
+	}
+
+	public Terrain getTerrain() {
+		return terrain;
 	}
 }

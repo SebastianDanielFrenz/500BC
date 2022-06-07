@@ -20,6 +20,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.util.Iterator;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
@@ -62,6 +63,8 @@ public class GamePanel extends JFrame {
 	public boolean KEY_A;
 	public boolean KEY_S;
 	public boolean KEY_D;
+	
+	public boolean KEY_E;
 
 	public boolean display_state;
 	public Realm display_state__realm;
@@ -140,10 +143,16 @@ public class GamePanel extends JFrame {
 				g.setColor(gui_text_title);
 				set(width / 10, height / 10);
 				center(g, display_state__realm.getName());
+
 				if (display_state__realm.getTerritories().size() == 1) {
-					if (display_state__realm.getTerritories().get(0).ID)
-					center(g, "Uninhabitable Desert");
+					Territory main = display_state__realm.getTerritories().get(0);
+					if (World.isDesert(main)) {
+						center(g, "Uninhabitable Desert");
+					} else if (World.isOcean(main)) {
+						center(g, "Ocean");
+					}
 				}
+
 				setX(width / 80);
 				left(g, display_state__realm.getGovernment().getTypeName());
 				left(g, display_state__realm.getTerritories().size() + "/"
@@ -160,6 +169,7 @@ public class GamePanel extends JFrame {
 				set((int) (width * 0.425), (int) (height * 0.025));
 				left(g, world.territories.length + " Territories");
 				left(g, world.realms.size() + " Realms");
+				left(g, world.DEBUG_LIST.size() + " debug list size");
 			}
 		};
 	};
@@ -170,8 +180,6 @@ public class GamePanel extends JFrame {
 		System.out.println(width + "," + height);
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
 		setUndecorated(true);
-
-		
 
 		add(jpanel);
 
@@ -229,7 +237,7 @@ public class GamePanel extends JFrame {
 
 			@Override
 			public void keyPressed(KeyEvent e) {
-				System.out.println("key: " + e.getKeyCode());
+				//System.out.println("key: " + e.getKeyCode());
 				if (e.getKeyCode() == KeyEvent.VK_W) {
 					KEY_W = true;
 				} else if (e.getKeyCode() == KeyEvent.VK_A) {
@@ -245,9 +253,23 @@ public class GamePanel extends JFrame {
 				} else if (e.getKeyCode() == 130) {
 					display_debug = !display_debug;
 				} else if (e.getKeyCode() == 48) {
-					new Thread(()->World.polishWorld(200)).start();
+					new Thread(() -> World.polishWorld(200)).start();
 				} else if (e.getKeyCode() == KeyEvent.VK_9) {
 					World.populateWorld();
+				} else if (e.getKeyCode() == KeyEvent.VK_E) {
+					World.DEBUG_LIST.add(World.getTerritoryAt(translatedX(), translatedY()));
+				} else if (e.getKeyCode() == KeyEvent.VK_R) {
+					World.dumpDebugList();
+					if (World.DEBUG_LIST.size() > 0) {
+						Iterator<Territory> it = World.DEBUG_LIST.iterator();
+						Territory main = it.next();
+						Territory tmp;
+						while (it.hasNext()) {
+							tmp = it.next();
+							World.merge(tmp, tmp.getRealm(), main.getTopLevelRealm());
+						}
+					}
+					World.DEBUG_LIST.clear();
 				}
 			}
 		});
@@ -280,11 +302,11 @@ public class GamePanel extends JFrame {
 
 			@Override
 			public void mouseClicked(MouseEvent e) {
-				System.out.println(width_scale);
+				//System.out.println(width_scale);
 				double transX = (((mouseX - width / 2) / zoom) - cameraX) / width;
 				double transY = (((mouseY - height / 2) / zoom) - cameraY) / height;
-				System.out.println(World.translateCoordsToID(transX, transY));
-				System.out.println(World.getTopRealm(transX, transY));
+				//System.out.println(World.translateCoordsToID(transX, transY));
+				//System.out.println(World.getTopRealm(transX, transY));
 				display_state__realm = World.getTopRealm(transX, transY);
 				display_state = true;
 			}
@@ -337,5 +359,12 @@ public class GamePanel extends JFrame {
 		// g.drawImage(myPicture, 0, 0, null);
 		// System.out.println("call " + i);
 
+	}
+	
+	private double translatedX() {
+		return (((mouseX - width / 2) / zoom) - cameraX) / width;
+	}
+	private double translatedY() {
+		return (((mouseY - height / 2) / zoom) - cameraY) / height;
 	}
 }
