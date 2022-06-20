@@ -1,34 +1,34 @@
 package game.territory.terrain;
 
-public class TerrainDesertMountains extends Terrain {
+public class TerrainWetlands extends Terrain {
 
-	public TerrainDesertMountains() {
-		super("Desert Mountains", 0x17, 0x13, 0x26);
+	public TerrainWetlands() {
+		super("wetlands", 0x4C, 0x99, 0x99);
 	}
 
 	@Override
 	public double getDevelopmentMult() {
-		return 0.4;
+		return 0.75;
 	}
 
 	@Override
 	public double getAgricultureLimit() {
-		return 750;
+		return 22500;
 	}
 
 	@Override
 	public double getDefenderAdvantage() {
-		return 12;
+		return 5;
 	}
 
 	@Override
 	public double getMovementSpeed() {
-		return 0.2;
+		return 0.7;
 	}
 
 	@Override
 	public double getSoilFertilaty() {
-		return 0.4;
+		return 0.75;
 	}
 
 }

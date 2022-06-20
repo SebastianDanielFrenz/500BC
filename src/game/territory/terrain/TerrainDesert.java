@@ -26,4 +26,9 @@ public class TerrainDesert extends Terrain {
 		return 0.7;
 	}
 
+	@Override
+	public double getSoilFertilaty() {
+		return 0.7;
+	}
+
 }

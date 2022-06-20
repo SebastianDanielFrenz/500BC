@@ -13,7 +13,7 @@ import game.territory.terrain.Terrain;
 public class Territory {
 	public Territory(int ID, int fileColor) {
 		this.ID = ID;
-		this.fileColor = fileColor;
+		this.fileColor = 0xff000000+fileColor;
 	}
 
 	public final int ID;
@@ -42,6 +42,7 @@ public class Territory {
 
 	public void setRealm(Realm realm) {
 		this.realm = realm;
+		World.setTerritoryColor(this, realm.getColor());
 	}
 
 	@Override

@@ -271,6 +271,16 @@ public class GamePanel extends JFrame {
 					}
 					World.DEBUG_LIST.clear();
 				}
+				
+				else if (e.getKeyCode() == 520) {
+					World.runDebugMethod();
+				}
+				else if (e.getKeyCode() == 67) {
+					cameraX = 0;
+					cameraY = 0;
+				}
+				
+				//System.out.println(e.getKeyCode());
 			}
 		});
 
@@ -309,6 +319,7 @@ public class GamePanel extends JFrame {
 				//System.out.println(World.getTopRealm(transX, transY));
 				display_state__realm = World.getTopRealm(transX, transY);
 				display_state = true;
+				//System.out.println(World.getTerritoryAt(transX, transY));
 			}
 		});
 	}

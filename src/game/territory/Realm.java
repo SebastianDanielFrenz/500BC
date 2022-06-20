@@ -134,6 +134,7 @@ public class Realm {
 
 	public void addTerritory(Territory t) {
 		territories.add(t);
+		t.setRealm(this);
 	}
 
 	public void setName(String name) {

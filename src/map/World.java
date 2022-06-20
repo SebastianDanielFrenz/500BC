@@ -52,8 +52,9 @@ public class World {
 	protected static Territory[] desert;
 	protected static Territory[] ocean;
 
-	public static final boolean DUMP_NEIGHBOURS = true;
+	public static final boolean DUMP_NEIGHBOURS = false;
 	public static final boolean VIEW_BIOME = true;
+	public static final boolean VIEW_UNIQUE_COLORS = false;
 
 	public static Set<Territory> DEBUG_LIST = new TreeSet<Territory>((x, y) -> x.ID == y.ID ? 0 : x.ID > y.ID ? 1 : -1);
 
@@ -76,13 +77,22 @@ public class World {
 
 		populateWorld();
 		loadTerritoryMeta();
-		determineNeighbours();
+		if (VIEW_BIOME) {
+			loadBiomesDebug();
+		} else if (VIEW_UNIQUE_COLORS) {
+			loadBiomesDebug();
 
-		new Thread(() -> {
-			polishWorld(0);
 			Thread thread = new Thread(new ThreadedLoop());
 			thread.start();
-		}).start();
+		} else {
+			determineNeighbours();
+
+			new Thread(() -> {
+				polishWorld(0);
+				Thread thread = new Thread(new ThreadedLoop());
+				thread.start();
+			}).start();
+		}
 	}
 
 	private static int[][] convertTo3DWithoutUsingGetRGB(BufferedImage image) {
@@ -310,7 +320,8 @@ public class World {
 		determineNeighbours(dst);
 
 		t.setRealm(dst);
-		setTerritoryColor(t, dst.getTerritories().size() > 0 ? dst.getTerritories().get(0).fileColor : 0xffffffff);
+		// setTerritoryColor(t, dst.getTerritories().size() > 0 ?
+		// dst.getTerritories().get(0).fileColor : 0xffffffff);
 	}
 
 	private static void determineNeighbours(Realm src) {
@@ -355,9 +366,9 @@ public class World {
 	public static int generateColorCode(int alpha, int r, int g, int b) {
 		int argb = 0;
 		argb += (((int) alpha & 0xff) << 24); // alpha
-		argb += ((int) r & 0xff); // blue
+		argb += ((int) b & 0xff); // blue
 		argb += (((int) g & 0xff) << 8); // green
-		argb += (((int) b & 0xff) << 16); // red
+		argb += (((int) r & 0xff) << 16); // red
 		return argb;
 	}
 
@@ -420,11 +431,13 @@ public class World {
 		}
 	}
 
-	public static void loadBiomes() {
+	public static void loadBiomesDebug() {
+		realms.clear();
 		for (int i = 0; i < Terrain.registry.size(); i++) {
-			Realm realm = new Realm(List.of(), List.of(), new CityStateGovernment());
+			Realm realm = new Realm(new ArrayList<Realm>(), new ArrayList<Territory>(), new CityStateGovernment());
 			realm.setName(Terrain.registry_names.get(i));
 			realm.setColor(Terrain.registry.get(i).color);
+			realms.add(realm);
 		}
 
 		for (int i = 0; i < territories.length; i++) {
@@ -436,6 +449,7 @@ public class World {
 			BufferedReader br = new BufferedReader(fr);
 
 			String line;
+			Terrain terrain;
 			while (true) {
 				line = br.readLine();
 				if (line == null || line.equals("")) {
@@ -444,7 +458,13 @@ public class World {
 				String[] s = line.split(" = ");
 				int ID = Integer.parseInt(s[0]);
 				String terrain_name = s[1];
-				territories[ID].setTerrain(Terrain.getTerrain(terrain_name));
+
+				terrain = Terrain.getTerrain(terrain_name);
+				territories[ID].setTerrain(terrain);
+				if (terrain == null) {
+					throw new RuntimeException("Terrain for " + ID + " was null!");
+				}
+				// System.out.println(terrain.name);
 			}
 
 			br.close();
@@ -455,10 +475,20 @@ public class World {
 			e.printStackTrace();
 		}
 
+		for (int i = 0; i < territories.length; i++) {
+			int index = Terrain.getIndex(territories[i].getTerrain());
+			if (index == 2) {
+			} else if (index != -1) {
+				realms.get(index).addTerritory(territories[i]);
+			} else {
+				realms.get(0).addTerritory(territories[i]);
+			}
+		}
+
 	}
 
-	public static void debugBiomes() {
-		for 
+	public static void runDebugMethod() {
+		World.setTerritoryColor(World.territories[0], 0xff, 0, 0, 255);
 	}
 
 }
