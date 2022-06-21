@@ -43,7 +43,7 @@ public class World {
 	protected static int width, height;
 	protected static Set<Integer> uniqueColors;
 	protected static Map<Integer, Integer> colorToID;
-	protected static Map<Integer, LinkedList<int[]>> IDtoPixels; // pls remove
+	// protected static Map<Integer, LinkedList<int[]>> IDtoPixels; // pls remove
 	protected static int[][] pixelToID;
 
 	protected static Territory[] territories;
@@ -143,7 +143,6 @@ public class World {
 		for (int i = 0; i < pixels.length; i++) {
 			for (int j = 0; j < pixels[i].length; j++) {
 				out.add(pixels[i][j]);
-
 			}
 		}
 		return out;
@@ -156,7 +155,7 @@ public class World {
 		uniqueColors = getUniqueColors(pixels);
 		System.out.println(uniqueColors.size());
 		colorToID = new TreeMap<Integer, Integer>();
-		IDtoPixels = new TreeMap<>();
+		// IDtoPixels = new TreeMap<>();
 		Iterator<Integer> it = uniqueColors.iterator();
 		int i = 0;
 		while (it.hasNext()) {
@@ -165,15 +164,43 @@ public class World {
 		}
 
 		pixelToID = new int[pixels.length][];
+
+		territories = new Territory[uniqueColors.size()];
+		Iterator<Integer> uniqueColor = uniqueColors.iterator();
 		for (int j = 0; j < uniqueColors.size(); j++) {
-			IDtoPixels.put(j, new LinkedList<int[]>());
+			// IDtoPixels.put(j, new LinkedList<int[]>());
+			territories[j] = new Territory(j, uniqueColor.next());
+		}
+		
+		try {
+			FileReader fr = new FileReader("pixels.txt");
+			BufferedReader br = new BufferedReader(fr);
+			String line = br.readLine();
+			String[] split;
+			
+			line = br.readLine();
+			
+			Territory t;
+			int len;
+			while (line != null && !line.isEmpty()) {
+				split = line.split(" = ");
+				t = territories[Integer.parseInt(split[0])];
+				len = Integer.parseInt(split[1]);
+				t.pixelsX = new short[len];
+				t.pixelsY = new short[len];
+				line = br.readLine();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 
+		Territory t = territories[0];
 		for (i = 0; i < pixels.length; i++) {
 			pixelToID[i] = new int[pixels[i].length];
 			for (int j = 0; j < pixels[i].length; j++) {
 				pixelToID[i][j] = colorToID.get(pixels[i][j]);
-				IDtoPixels.get(pixelToID[i][j]).add(new int[] { i, j });
+				// IDtoPixels.get(pixelToID[i][j]).add(new int[] { i, j });
+				territories[pixelToID[i][j]].addPixel((short)i, (short)j);
 			}
 		}
 	}
@@ -201,10 +228,8 @@ public class World {
 	public static void populateWorld() {
 		realms = new ArrayList<>();
 
-		territories = new Territory[uniqueColors.size()];
 		Iterator<Integer> uniqueColor = uniqueColors.iterator();
 		for (int i = 0; i < territories.length; i++) {
-			territories[i] = new Territory(i, uniqueColor.next());
 
 			Government government = new CityStateGovernment();
 			List<Territory> ts = new ArrayList<Territory>();
@@ -352,8 +377,9 @@ public class World {
 		// }
 		// }
 
-		for (int[] pixel : IDtoPixels.get(t.ID)) {
-			GamePanel.myPicture.setRGB(pixel[1], pixel[0], argb);
+		// for (int[] pixel : IDtoPixels.get(t.ID)) {
+		for (int i = 0; i < t.pixelCount; i++) {
+			GamePanel.myPicture.setRGB(t.pixelsY[i], t.pixelsX[i], argb);
 			// System.out.println("pixel");
 		}
 
@@ -493,7 +519,7 @@ public class World {
 
 	}
 
-	public static void runDebugMethod() {
+	public static void runDebugMethod2() {
 		Terrain t;
 		Random r = new Random();
 		final int max = 20;
@@ -507,6 +533,18 @@ public class World {
 			World.setTerritoryColor(territories[i], 0xff, t.r > 128 ? t.r - r.nextInt(max) : t.r + r.nextInt(max),
 					t.g > 128 ? t.g - r.nextInt(max) : t.g + r.nextInt(max),
 					t.b > 128 ? t.b - r.nextInt(max) : t.b + r.nextInt(max));
+		}
+	}
+	
+	public static void runDebugMethod() {
+		try {
+			FileWriter fw = new FileWriter("pixels.txt", true);
+			for (Territory t : territories) {
+				fw.write(t.ID + " = " + t.pixelCount + "\n");
+			}
+			fw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 

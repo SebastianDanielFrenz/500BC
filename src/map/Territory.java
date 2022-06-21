@@ -13,8 +13,10 @@ import game.territory.terrain.Terrain;
 public class Territory {
 	public Territory(int ID, int fileColor) {
 		this.ID = ID;
-		this.fileColor = 0xff000000+fileColor;
+		this.fileColor = 0xff000000 + fileColor;
 	}
+
+	private static final int ARRAY_EXPAND = 1000;
 
 	public final int ID;
 	private Realm realm;
@@ -23,7 +25,9 @@ public class Territory {
 	private List<Holding> holdings = new ArrayList<Holding>();
 	private Terrain terrain;
 
-	public List<int[]> pixels;
+	public short[] pixelsX = new short[ARRAY_EXPAND];
+	public short[] pixelsY = new short[ARRAY_EXPAND];
+	public int pixelCount;
 
 	private TerritoryStatistics statistics;
 
@@ -94,5 +98,37 @@ public class Territory {
 
 	public Terrain getTerrain() {
 		return terrain;
+	}
+
+	public void addPixel(short i, short j) {
+		pixelsX[pixelCount] = i;
+		pixelsY[pixelCount] = j;
+		pixelCount++;
+	}
+
+	public void addPixelWithoutPixelFile(short i, short j) {
+		try {
+			pixelsX[pixelCount] = i;
+			pixelsY[pixelCount] = j;
+			pixelCount++;
+		} catch (ArrayIndexOutOfBoundsException e) {
+			short[] X = new short[pixelCount + ARRAY_EXPAND];
+			for (int k = 0; k < pixelCount; k++) {
+				X[k] = pixelsX[k];
+			}
+			pixelsX = X;
+
+			short[] Y = new short[pixelCount + ARRAY_EXPAND];
+			for (int k = 0; k < pixelCount; k++) {
+				Y[k] = pixelsY[k];
+			}
+
+			pixelsY = Y;
+
+			pixelsX[pixelCount] = i;
+			pixelsY[pixelCount] = j;
+			pixelCount++;
+		}
+
 	}
 }
