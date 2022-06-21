@@ -178,8 +178,6 @@ public class World {
 			String line = br.readLine();
 			String[] split;
 			
-			line = br.readLine();
-			
 			Territory t;
 			int len;
 			while (line != null && !line.isEmpty()) {
