@@ -421,7 +421,7 @@ public class World {
 		try {
 			System.out.println("Biome: ");
 			String biome = scanner.nextLine();
-			FileWriter fw = new FileWriter("Z_out.txt", true);
+			FileWriter fw = new FileWriter("biomes.txt", true);
 			for (Territory t : DEBUG_LIST) {
 				fw.write(t.ID + " = " + biome + "\n");
 			}

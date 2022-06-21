@@ -20,3 +20,4 @@ for biome in biomes:
     file.write(biomes[biome])
 
 file.close()
+input()
