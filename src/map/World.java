@@ -329,19 +329,17 @@ public class World {
 	}
 
 	public static void setTerritoryColor(Territory t, int alpha, int r, int g, int b) {
-		int argb = 0;
-		argb += (((int) alpha & 0xff) << 24); // alpha
-		argb += ((int) r & 0xff); // blue
-		argb += (((int) g & 0xff) << 8); // green
-		argb += (((int) b & 0xff) << 16); // red
 		/*
 		 * for (int x = 0; x < width; x++) { for (int y = 0; y < height; y++) { if
 		 * (pixels[y][x] == t.fileColor) { GamePanel.myPicture.setRGB(x, y, argb); } } }
 		 */
 
-		for (int[] pixel : IDtoPixels.get(t.ID)) {
-			GamePanel.myPicture.setRGB(pixel[1], pixel[0], argb);
-		}
+		/*
+		 * for (int[] pixel : IDtoPixels.get(t.ID)) {
+		 * GamePanel.myPicture.setRGB(pixel[1], pixel[0], argb); }
+		 */
+
+		setTerritoryColor(t, generateColorCode(alpha, r, g, b));
 	}
 
 	public static void setTerritoryColor(Territory t, int argb) {
@@ -440,9 +438,10 @@ public class World {
 			realms.add(realm);
 		}
 
-		for (int i = 0; i < territories.length; i++) {
-			territories[i].setTerrain(Terrain.PLAINS);
-		}
+		/*
+		 * for (int i = 0; i < territories.length; i++) {
+		 * territories[i].setTerrain(Terrain.PLAINS); }
+		 */
 
 		try {
 			FileReader fr = new FileReader("biomes.txt");
@@ -461,9 +460,9 @@ public class World {
 
 				terrain = Terrain.getTerrain(terrain_name);
 				territories[ID].setTerrain(terrain);
-				if (terrain == null) {
-					throw new RuntimeException("Terrain for " + ID + " was null!");
-				}
+				// if (terrain == null) {
+				// throw new RuntimeException("Terrain for " + ID + " was null!");
+				// }
 				// System.out.println(terrain.name);
 			}
 
@@ -475,20 +474,40 @@ public class World {
 			e.printStackTrace();
 		}
 
+		Terrain t;
+		Random r = new Random();
+		final int max = 20;
 		for (int i = 0; i < territories.length; i++) {
 			int index = Terrain.getIndex(territories[i].getTerrain());
-			if (index == 2) {
-			} else if (index != -1) {
+			if (index != -1) {
 				realms.get(index).addTerritory(territories[i]);
+				t = territories[i].getTerrain();
 			} else {
-				realms.get(0).addTerritory(territories[i]);
+				realms.get(2).addTerritory(territories[i]);
+				t = Terrain.registry.get(2);
 			}
+			World.setTerritoryColor(territories[i], 0xff, t.r > 128 ? t.r - r.nextInt(max) : t.r + r.nextInt(max),
+					t.g > 128 ? t.g - r.nextInt(max) : t.g + r.nextInt(max),
+					t.b > 128 ? t.b - r.nextInt(max) : t.b + r.nextInt(max));
 		}
 
 	}
 
 	public static void runDebugMethod() {
-		World.setTerritoryColor(World.territories[0], 0xff, 0, 0, 255);
+		Terrain t;
+		Random r = new Random();
+		final int max = 20;
+		for (int i = 0; i < territories.length; i++) {
+			int index = Terrain.getIndex(territories[i].getTerrain());
+			if (index != -1) {
+				t = territories[i].getTerrain();
+			} else {
+				t = Terrain.registry.get(2);
+			}
+			World.setTerritoryColor(territories[i], 0xff, t.r > 128 ? t.r - r.nextInt(max) : t.r + r.nextInt(max),
+					t.g > 128 ? t.g - r.nextInt(max) : t.g + r.nextInt(max),
+					t.b > 128 ? t.b - r.nextInt(max) : t.b + r.nextInt(max));
+		}
 	}
 
 }
