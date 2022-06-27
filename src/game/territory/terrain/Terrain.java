@@ -27,6 +27,7 @@ public abstract class Terrain {
 	public static final Terrain TAIGA = new TerrainTaiga();
 
 	public static final Terrain OCEAN = new TerrainOcean();
+	public static final Terrain RIVER = new TerrainRiver();
 
 	public static Terrain getTerrain(String name) {
 		for (int i = 0; i < registry.size(); i++) {
