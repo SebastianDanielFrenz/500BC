@@ -23,6 +23,7 @@ public abstract class Holding {
 	private double cache_ruler_prestige;
 	private double cache_food_production;
 	private double cache_food_storage_limit;
+	private double cache_development_pace;
 
 	public abstract String getName();
 
@@ -68,6 +69,7 @@ public abstract class Holding {
 		double rulerPrestige = 0;
 		double foodProduction = 0;
 		double foodStorageLimit = 0;
+		double developmentPace = 0;
 		for (Building b : buildings) {
 			for (BuildingModifier mod : b.getModifiers(this)) {
 				if (mod.type == BuildingModifierType.ADD_FOOD_PRODUCTION) {
@@ -102,6 +104,7 @@ public abstract class Holding {
 		cache_education_target = educationTarget;
 		cache_cost = cost;
 		cache_food_storage_limit = foodStorageLimit;
+		cache_development_pace = developmentPace;
 	}
 
 	public double getTaxIncome() {

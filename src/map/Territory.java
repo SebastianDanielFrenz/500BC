@@ -75,11 +75,6 @@ public class Territory {
 		}
 	}
 
-	private void calcDevelopmentTarget() {
-		for (Holding holding : holdings) {
-		}
-	}
-
 	public double getTaxIncome() {
 		return tax_income;
 	}
