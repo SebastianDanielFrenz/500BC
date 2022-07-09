@@ -73,6 +73,7 @@ public class Territory {
 			holding.update();
 			tax_income += holding.getTaxIncome();
 		}
+		
 	}
 
 	public double getTaxIncome() {
