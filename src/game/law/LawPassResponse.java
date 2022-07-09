@@ -1,4 +1,4 @@
-package game.territory;
+package game.law;
 
 public class LawPassResponse {
 

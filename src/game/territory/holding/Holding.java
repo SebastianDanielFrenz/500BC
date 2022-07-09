@@ -19,6 +19,10 @@ public abstract class Holding {
 	private double cache_fortification;
 	private double cache_education_target;
 	private double cache_cost;
+	private double cache_ruler_piety;
+	private double cache_ruler_prestige;
+	private double cache_food_production;
+	private double cache_food_storage_limit;
 
 	public abstract String getName();
 
@@ -48,7 +52,7 @@ public abstract class Holding {
 
 	public abstract double getTaxIncomePerCapita();
 
-	public abstract double getBaseTaxIncome(); 
+	public abstract double getBaseTaxIncome();
 
 	public void calcBuildingModifiers() {
 		PlayableCharacter ruler = parent.getRealm().getGovernment().getRuler();
@@ -72,7 +76,7 @@ public abstract class Holding {
 					foodProduction += tmp;
 				} else if (mod.type == BuildingModifierType.ADD_FOOD_STORAGE) {
 					cost += mod.amount / 100;
-					
+
 				} else if (mod.type == BuildingModifierType.ADD_TAX_INCOME_BASE) {
 					base += mod.amount;
 				} else if (mod.type == BuildingModifierType.ADD_TAX_INCOME_MULT) {
@@ -90,10 +94,14 @@ public abstract class Holding {
 				}
 			}
 		}
-		cache_tax_income = base * mult - cost;
-		cache_development_target = base * mult - cost;
+		cache_tax_income = base * mult;
+		cache_development_target = developmentTarget;
 		cache_levy_limit_base = levyLimitBase;
 		cache_levy_limit_mult = levyLimitMult;
+		cache_fortification = fortification;
+		cache_education_target = educationTarget;
+		cache_cost = cost;
+		cache_food_storage_limit = foodStorageLimit;
 	}
 
 	public double getTaxIncome() {

@@ -37,7 +37,7 @@ public class World {
 	public static Random random = new Random();
 	public static final String IMAGE_URL = "/res/map_data/provinces.png";
 
-	public static final CDate date = new CDate();
+	public static CDate date = new CDate();
 
 	protected static int[][] pixels;
 	protected static int width, height;
@@ -49,16 +49,17 @@ public class World {
 	protected static Territory[] territories;
 	protected static List<Realm> realms;
 
-	protected static Territory[] desert;
-	protected static Territory[] ocean;
-
 	public static final boolean DUMP_NEIGHBOURS = false;
 	public static final boolean VIEW_BIOME = true;
 	public static final boolean VIEW_UNIQUE_COLORS = false;
+	public static final boolean REFACTOR_MAP = false;
+	public static final boolean COLOR_BASED_TERRAIN_LOADING = false;
 
 	public static Set<Territory> DEBUG_LIST = new TreeSet<Territory>((x, y) -> x.ID == y.ID ? 0 : x.ID > y.ID ? 1 : -1);
 
 	public static final Scanner scanner = new Scanner(System.in);
+
+	public static CDate beginDate;
 
 	/*
 	 * static { int count = 2; for (int c = 0; c < count; c++) { new Thread(() -> {
@@ -76,7 +77,7 @@ public class World {
 		loadMap(getClass().getResource(imageDst));
 
 		populateWorld();
-		loadTerritoryMeta();
+		loadBiomes();
 		if (VIEW_BIOME) {
 			loadBiomesDebug();
 		} else if (VIEW_UNIQUE_COLORS) {
@@ -171,13 +172,13 @@ public class World {
 			// IDtoPixels.put(j, new LinkedList<int[]>());
 			territories[j] = new Territory(j, uniqueColor.next());
 		}
-		
+
 		try {
 			FileReader fr = new FileReader("pixels.txt");
 			BufferedReader br = new BufferedReader(fr);
 			String line = br.readLine();
 			String[] split;
-			
+
 			Territory t;
 			int len;
 			while (line != null && !line.isEmpty()) {
@@ -198,8 +199,20 @@ public class World {
 			for (int j = 0; j < pixels[i].length; j++) {
 				pixelToID[i][j] = colorToID.get(pixels[i][j]);
 				// IDtoPixels.get(pixelToID[i][j]).add(new int[] { i, j });
-				territories[pixelToID[i][j]].addPixel((short)i, (short)j);
+				if (REFACTOR_MAP) {
+					territories[pixelToID[i][j]].addPixelWithoutPixelFile((short) i, (short) j);
+				} else {
+					territories[pixelToID[i][j]].addPixel((short) i, (short) j);
+				}
 			}
+		}
+
+		if (REFACTOR_MAP) {
+			FileWriter fw = new FileWriter("pixels.txt");
+			for (Territory t2 : territories) {
+				fw.write(String.valueOf(t2.ID) + " = " + String.valueOf(t2.pixelCount));
+			}
+			fw.close();
 		}
 	}
 
@@ -227,7 +240,7 @@ public class World {
 		realms = new ArrayList<>();
 
 		Iterator<Integer> uniqueColor = uniqueColors.iterator();
-		for (int i = 0; i < territories.length; i++) {
+		for (int i = 0; i < territories.length; i++) { 
 
 			Government government = new CityStateGovernment();
 			List<Territory> ts = new ArrayList<Territory>();
@@ -394,42 +407,6 @@ public class World {
 		return argb;
 	}
 
-	public static void loadTerritoryMeta() {
-		desert = new Territory[] { territories[1288] };
-		ocean = new Territory[] {};
-	}
-
-	public static boolean contains(Territory[] t, Territory s) {
-		if (t.length == 0) {
-			return false;
-		}
-		int upperLimit = desert.length - 1;
-		int lowerLimit = 0;
-		int center = desert.length / 2;
-		Territory c;
-		while (upperLimit != lowerLimit) {
-			c = desert[center];
-			if (c == s) {
-				return true;
-			}
-			if (c.ID > s.ID) {
-				upperLimit = center;
-			} else {
-				lowerLimit = center;
-			}
-			center = (upperLimit - lowerLimit) / 2 + lowerLimit;
-		}
-		return t[upperLimit] == s;
-	}
-
-	public static boolean isDesert(Territory t) {
-		return contains(desert, t);
-	}
-
-	public static boolean isOcean(Territory t) {
-		return contains(ocean, t);
-	}
-
 	public static void updateWorld() {
 		int len = date.getNumberOfDaysInMonth();
 		for (int i = date.getDay() - 1; i < territories.length; i += len) {
@@ -452,21 +429,8 @@ public class World {
 			e.printStackTrace();
 		}
 	}
-
-	public static void loadBiomesDebug() {
-		realms.clear();
-		for (int i = 0; i < Terrain.registry.size(); i++) {
-			Realm realm = new Realm(new ArrayList<Realm>(), new ArrayList<Territory>(), new CityStateGovernment());
-			realm.setName(Terrain.registry_names.get(i));
-			realm.setColor(Terrain.registry.get(i).color);
-			realms.add(realm);
-		}
-
-		/*
-		 * for (int i = 0; i < territories.length; i++) {
-		 * territories[i].setTerrain(Terrain.PLAINS); }
-		 */
-
+	
+	public static void loadBiomes() {
 		try {
 			FileReader fr = new FileReader("biomes.txt");
 			BufferedReader br = new BufferedReader(fr);
@@ -497,6 +461,21 @@ public class World {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static void loadBiomesDebug() {
+		realms.clear();
+		for (int i = 0; i < Terrain.registry.size(); i++) {
+			Realm realm = new Realm(new ArrayList<Realm>(), new ArrayList<Territory>(), new CityStateGovernment());
+			realm.setName(Terrain.registry_names.get(i));
+			realm.setColor(Terrain.registry.get(i).color);
+			realms.add(realm);
+		}
+
+		/*
+		 * for (int i = 0; i < territories.length; i++) {
+		 * territories[i].setTerrain(Terrain.PLAINS); }
+		 */
 
 		Terrain t;
 		Random r = new Random();
@@ -517,7 +496,7 @@ public class World {
 
 	}
 
-	public static void runDebugMethod2() {
+	public static void runDebugMethodRecolor() {
 		Terrain t;
 		Random r = new Random();
 		final int max = 20;
@@ -533,8 +512,8 @@ public class World {
 					t.b > 128 ? t.b - r.nextInt(max) : t.b + r.nextInt(max));
 		}
 	}
-	
-	public static void runDebugMethod() {
+
+	public static void runDebugMethodDumpPixels() {
 		try {
 			FileWriter fw = new FileWriter("pixels.txt", true);
 			for (Territory t : territories) {
@@ -544,6 +523,26 @@ public class World {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public static void runDebugMethod() {
+
+	}
+
+	public static void dumpTerrainByColor() {
+		try {
+			FileWriter fw = new FileWriter("color2Terrain.txt");
+			for (int i = 0; i < territories.length; i++) {
+				fw.write(territories[i].fileColor + " = " + territories[i].getTerrain());
+			}
+			fw.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public static void loadBiomeByColor() {
+		  
 	}
 
 }

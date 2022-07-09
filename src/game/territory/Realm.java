@@ -3,6 +3,7 @@ package game.territory;
 import java.util.List;
 import java.util.function.Consumer;
 
+import game.character.PlayableCharacter;
 import map.Territory;
 import map.World;
 
@@ -151,5 +152,9 @@ public class Realm {
 
 	public int getColor() {
 		return color;
+	}
+	
+	public PlayableCharacter getRuler() {
+		return government.getRuler();
 	}
 }

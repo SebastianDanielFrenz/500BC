@@ -18,6 +18,11 @@ public class CDate {
 		cal = Calendar.getInstance();
 	}
 
+	public CDate(int year, int month, int day) {
+		this();
+		set(year, month, day);
+	}
+
 	public void set(int year, int month, int day) {
 		cal.set(year + offset, month, day);
 	}
@@ -39,7 +44,19 @@ public class CDate {
 	}
 
 	public int getNumberOfDaysInMonth() {
-		return YearMonth.of(getYear() + offset, getMonth()+1).lengthOfMonth();
+		return YearMonth.of(getYear() + offset, getMonth() + 1).lengthOfMonth();
+	}
+
+	public boolean isBefore(CDate date) {
+		return cal.before(date.cal);
+	}
+
+	public boolean isAfter(CDate date) {
+		return cal.after(date.cal);
+	}
+
+	public boolean equals(CDate date) {
+		return cal.equals(date.cal);
 	}
 
 }

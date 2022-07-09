@@ -1,14 +1,16 @@
 package game.territory;
 
 import game.character.PlayableCharacter;
+import game.law.Law;
+import game.law.LawPassResponse;
 import game.territory.holding.Holding;
 
 public class CityStateGovernment extends Government {
-	
+
 	public CityStateGovernment() {
 		mayor = PlayableCharacter.generate();
 	}
-	
+
 	private PlayableCharacter mayor;
 
 	@Override
@@ -43,6 +45,21 @@ public class CityStateGovernment extends Government {
 	@Override
 	public boolean canGovern(Holding holding) {
 		return true;
+	}
+
+	@Override
+	public boolean abdecate() {
+		return false;
+	}
+
+	@Override
+	public boolean hasGovernmentalCycles() {
+		return false;
+	}
+
+	@Override
+	public int getGovernmentalCycleLength() {
+		return 0;
 	}
 
 }

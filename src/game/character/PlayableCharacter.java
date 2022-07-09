@@ -29,6 +29,10 @@ public class PlayableCharacter {
 
 	private CDate birth;
 
+	private double prestige = 0;
+	private double money = 0;
+	private double piety = 0;
+
 	public CDate getBirth() {
 		return birth;
 	}
@@ -129,5 +133,29 @@ public class PlayableCharacter {
 			}
 		}
 		return out;
+	}
+
+	public double getPrestige() {
+		return prestige;
+	}
+
+	public void addPrestige(double amount) {
+		prestige += amount;
+	}
+
+	public double getPiety() {
+		return piety;
+	}
+
+	public void addPiety(double amount) {
+		piety += amount;
+	}
+
+	public double getMoney() {
+		return money;
+	}
+
+	public void addMoney(double amount) {
+		money += amount;
 	}
 }
