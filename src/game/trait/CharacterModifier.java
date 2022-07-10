@@ -3,11 +3,11 @@ package game.trait;
 public class CharacterModifier {
 
 	public final CharacterModifierType type;
-	public final double value;
+	public final double amount;
 
-	public CharacterModifier(CharacterModifierType type, double value) {
+	public CharacterModifier(CharacterModifierType type, double amount) {
 		this.type = type;
-		this.value = value;
+		this.amount = amount;
 	}
 
 }

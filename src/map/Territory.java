@@ -1,10 +1,7 @@
 package map;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 import game.territory.Realm;
 import game.territory.holding.Holding;
@@ -70,7 +67,7 @@ public class Territory {
 	public void update() {
 		tax_income = 0;
 		for (Holding holding : holdings) {
-			holding.update();
+			holding.updateMonth();
 			tax_income += holding.getTaxIncome();
 		}
 		
